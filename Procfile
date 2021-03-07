@@ -1,1 +1,1 @@
-web: 
+web: aiosmtpd -n -c aiosmtpd.handlers.Debugging -l :${PORT:-8025}
