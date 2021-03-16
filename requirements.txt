@@ -1,6 +1,0 @@
-aiohttp
-git+https://github.com/aio-libs/aiosmtpd.git@747a7c467d45354d8d1ea72bc9d2fce15e186479
-beautifulsoup4
-lxml
-pandas
-slack-sdk
