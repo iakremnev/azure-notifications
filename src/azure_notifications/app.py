@@ -1,12 +1,16 @@
 import asyncio
 import functools
 import logging
+import os
 from email.message import EmailMessage
 
 from azure_notifications.config import SMTP_SERVER_PORT
 from azure_notifications.slack import send_error_to_slack, send_to_slack
 from azure_notifications.smtpd import SMTP as MailServer
 from azure_notifications.worker import dispatch_email
+
+
+logging.basicConfig(level=os.getenv("LOG_LEVEL") or logging.INFO)
 
 
 async def consume(queue: asyncio.Queue):
