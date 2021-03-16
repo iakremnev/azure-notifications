@@ -1,13 +1,13 @@
-from email.message import Message
+from email.message import EmailMessage
 
-from .parse.email import extract_event_headers, decode_payload
-from .parse.html import parse_payload
 from .config import Event
+from .parse.email import decode_payload, extract_event_headers
 from .parse.html import *
+from .parse.html import parse_payload
 
 
-def dispatch_email(email: Message):
-    event_info = extract_event_headers(email)
+def dispatch_email(email: EmailMessage):
+    event_info = extract_event_headers(email, decode_utf=False)
     payload = decode_payload(email)
 
     if event_info["type"] == Event.WORK_ITEM_CHANGED.value:
@@ -19,7 +19,7 @@ def dispatch_email(email: Message):
     elif event_info["type"] == Event.PR_COMMENT.value:
         payload = PullRequestCommentHtml(payload)
         return parse_payload(
-            payload, commentator=event_info["initiator"], trigger=event_info["trigger"]
+            payload, commenter=event_info["initiator"], trigger=event_info["trigger"]
         )
 
     elif event_info["type"] == Event.BUILD_COMPLETED.value:
@@ -28,8 +28,12 @@ def dispatch_email(email: Message):
 
     elif event_info["type"] == Event.PULL_REQUEST.value:
         payload = PullRequestHtml(payload)
+
         return parse_payload(
-            payload, initiator=event_info["initiator"], trigger=event_info["trigger"]
+            payload,
+            initiator=event_info["initiator"],
+            subject=event_info["subject"],
+            trigger=event_info["trigger"],
         )
 
     else:

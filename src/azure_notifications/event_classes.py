@@ -26,7 +26,9 @@ class BuildCompletedEvent(TFSEvent):
 @dataclass
 class PullRequestEvent(TFSEvent):
     initiator: str
+    pr_author: str
     vote: Optional[str] = None
+    reviewer: Optional[str] = None
     commits: Optional[int] = None
     status: Optional[str] = None
 
@@ -34,5 +36,5 @@ class PullRequestEvent(TFSEvent):
 @dataclass
 class PullRequestCommentEvent(TFSEvent):
     # pr_author: str
-    commentator: str
+    commenter: str
     text: str

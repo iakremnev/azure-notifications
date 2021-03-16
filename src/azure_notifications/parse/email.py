@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from email.message import Message
 import base64
 import quopri
 import re
+from email.message import EmailMessage
 
 
-def decode_word(encoded_words):
+def decode_word(encoded_words: str):
     """Decode encoded-word syntax.
 
     Can work with multiline encodings.
@@ -24,12 +24,13 @@ def decode_word(encoded_words):
     return byte_string.decode(charset)
 
 
-def extract_event_headers(email: Message, decode_utf=True) -> dict[str, str]:
+def extract_event_headers(email: EmailMessage, decode_utf=True) -> dict[str, str]:
     """Extract headers of interest descring notification event"""
     event = {
         "type": email["X-VSS-Event-Type"],
         "trigger": email["X-VSS-Event-Trigger"],
         "initiator": email.get("X-VSS-Event-Initiator"),
+        "subject": email["Subject"],
     }
 
     if decode_utf:
@@ -45,7 +46,7 @@ def extract_event_headers(email: Message, decode_utf=True) -> dict[str, str]:
     return event
 
 
-def decode_payload(email: Message) -> str:
+def decode_payload(email: EmailMessage) -> str:
     """Extract and decode payload from the email"""
-    payload = email.get_payload(decode=True).decode()
+    payload = email.get_content()
     return payload.strip().replace("\r\n", "\n")

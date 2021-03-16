@@ -1,6 +1,10 @@
+import os
 from enum import Enum
 
+import pandas as pd
+
 SMTP_SERVER_PORT = 8025
+SLACK_API_TOKEN = os.getenv("SLACK_API_TOKEN")
 
 
 class Event(Enum):
@@ -10,13 +14,22 @@ class Event(Enum):
     WORK_ITEM_CHANGED = "ms.vss-work.workitem-changed-event"
 
 
+# This dictionary is used only for lookup
 event_triggers = {
     Event.BUILD_COMPLETED: ["Successfully Completed", "Failed"],
     Event.PR_COMMENT: ["CommentNotification"],
     Event.PULL_REQUEST: [
         "StatusUpdateNotification",
         "ReviewerVoteNotification",
+        "ReviewersUpdateNotification",
         "PushNotification",
     ],
     Event.WORK_ITEM_CHANGED: ["FieldChanged,AssignedToChanged"],
+}
+
+slack_user_ids = pd.read_csv(os.getenv("SLACK_USER_IDS"), index_col="tfs_name")[
+    "id"
+].to_dict()
+slack_user_ids = {
+    key: value for key, value in slack_user_ids.items() if not pd.isna(key)
 }

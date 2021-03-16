@@ -1,7 +1,10 @@
+import re
+from functools import singledispatch
+
 from bs4 import BeautifulSoup
+
 import azure_notifications.event_classes as events
 from azure_notifications.config import Event
-from functools import singledispatch
 
 # Some classes to support single dispatch method
 
@@ -91,10 +94,13 @@ def parse_pr(html: PullRequestHtml, **known_fields):
     url = soup.find("a").get("href")  # Lucky it's the first
     initiator = known_fields["initiator"]
 
+    subject = known_fields.pop("subject")
+    pr_author = re.fullmatch(r".*\((.+)\)", subject)[1]
+
     fields = {
         "title": title,
-        "initiator": initiator,
         "url": url,
+        "pr_author": pr_author,
         "event_type": Event.PULL_REQUEST.value,
     }
 
@@ -113,6 +119,14 @@ def parse_pr(html: PullRequestHtml, **known_fields):
             vote = next(row_iter)
         vote = vote.text.strip()
         fields["vote"] = vote
+
+    elif trigger == "ReviewersUpdateNotification":
+        message: str = soup.find("td", class_="title").text.strip()
+        reviewer, status = re.match(r"(.+) was (\w+)", message).groups()
+        if status != "added":
+            raise NotImplementedError
+        fields["reviewer"] = reviewer
+        fields["status"] = status
 
     elif trigger == "StatusUpdateNotification":
         message = soup.find("div")
