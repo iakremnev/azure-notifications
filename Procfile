@@ -1,1 +1,1 @@
-web: aiosmtpd -n -c aiosmtpd.handlers.Debugging -l :${PORT:-8025}
+web: python -m azure_notifications.app
