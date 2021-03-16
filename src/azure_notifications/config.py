@@ -3,7 +3,7 @@ from enum import Enum
 
 import pandas as pd
 
-SMTP_SERVER_PORT = 8025
+SMTP_SERVER_PORT = os.getenv("PORT") or 8025
 SLACK_API_TOKEN = os.getenv("SLACK_API_TOKEN")
 
 
