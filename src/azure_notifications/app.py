@@ -1,16 +1,20 @@
 import asyncio
-import functools
 import logging
 import os
 from email.message import EmailMessage
 
-from azure_notifications.config import SMTP_SERVER_PORT
+from azure_notifications.config import SERVER_PORT
 from azure_notifications.slack import send_error_to_slack, send_to_slack
-from azure_notifications.smtpd import SMTP as MailServer
 from azure_notifications.worker import dispatch_email
+from slack_bolt.async_app import AsyncApp
 
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL") or logging.INFO)
+
+slack = AsyncApp(
+    token=os.environ.get("SLACK_BOT_TOKEN"),
+    signing_secret=os.environ.get("SLACK_SIGNING_SECRET")
+)
 
 
 async def consume(queue: asyncio.Queue):
@@ -29,18 +33,5 @@ async def consume(queue: asyncio.Queue):
             await send_error_to_slack(msg)
 
 
-async def main():
-    message_queue = asyncio.Queue()
-
-    loop = asyncio.get_running_loop()
-    smtp = await loop.create_server(
-        functools.partial(MailServer, message_queue, loop), port=SMTP_SERVER_PORT
-    )
-    async with smtp:
-        try:
-            await consume(message_queue)
-        except KeyboardInterrupt:
-            pass
-
-
-asyncio.run(main(), debug=True)
+if __name__ == "__main__":
+    slack.start(SERVER_PORT)

@@ -3,8 +3,8 @@ from enum import Enum
 
 import pandas as pd
 
-SMTP_SERVER_PORT = os.getenv("PORT") or 8025
-SLACK_API_TOKEN = os.getenv("SLACK_API_TOKEN")
+SERVER_PORT = int(os.getenv("PORT") or 3000)
+SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 
 
 class Event(Enum):
@@ -27,9 +27,9 @@ event_triggers = {
     Event.WORK_ITEM_CHANGED: ["FieldChanged,AssignedToChanged"],
 }
 
-slack_user_ids = pd.read_csv(os.getenv("SLACK_USER_IDS"), index_col="tfs_name")[
-    "id"
-].to_dict()
-slack_user_ids = {
-    key: value for key, value in slack_user_ids.items() if not pd.isna(key)
-}
+# slack_user_ids = pd.read_csv(os.getenv("SLACK_USER_IDS"), index_col="tfs_name")[
+#     "id"
+# ].to_dict()
+# slack_user_ids = {
+#     key: value for key, value in slack_user_ids.items() if not pd.isna(key)
+# }

@@ -4,11 +4,13 @@ from functools import singledispatch
 from slack_sdk.errors import SlackApiError
 from slack_sdk.web.async_client import AsyncWebClient
 
-from .config import SLACK_API_TOKEN, slack_user_ids
+# from .config import SLACK_BOT_TOKEN, slack_user_ids
 from .event_classes import *
 
-slack = AsyncWebClient(token=SLACK_API_TOKEN)
+
 CHANNEL = "D01R8L8TP0S"
+
+
 
 
 @singledispatch
