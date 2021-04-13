@@ -1,36 +1,40 @@
 import asyncio
 import logging
 import os
-from email.message import EmailMessage
+import json
+from typing import Any
 
-from azure_notifications.config import SERVER_PORT
-from azure_notifications.slack import send_error_to_slack, send_to_slack
-from azure_notifications.worker import dispatch_email
+from azure_notifications.config import SERVER_PORT, BOT_SERVICE_CHANNEL
+from azure_notifications.worker import preprocess_slack_event, work
 from slack_bolt.async_app import AsyncApp
+from slack_sdk.web.async_client import AsyncWebClient
 
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL") or logging.INFO)
+save_events = True
 
 slack = AsyncApp(
     token=os.environ.get("SLACK_BOT_TOKEN"),
-    signing_secret=os.environ.get("SLACK_SIGNING_SECRET")
+    signing_secret=os.environ.get("SLACK_SIGNING_SECRET"),
 )
 
 
-async def consume(queue: asyncio.Queue):
-    while True:
-        msg: EmailMessage = await queue.get()
-        try:
-            event = dispatch_email(msg)
-            logging.info(event)
-            await send_to_slack(event)
-        except NotImplementedError:
-            logging.error(
-                "Couldn't handle message:\n"
-                f"X-VSS-Event-Type:\t{msg['X-VSS-Event-Type']}\n"
-                f"X-VSS-Event-Trigger:\t{msg['X-VSS-Event-Trigger']}"
-            )
-            await send_error_to_slack(msg)
+@slack.event(
+    {
+        "type": "message",
+        "channel": BOT_SERVICE_CHANNEL,
+        "subtype": "file_share",
+        "user": "USLACKBOT",
+    }
+)
+async def process_azure_email(client: AsyncWebClient, event: dict[str, Any]):
+    if save_events:
+        with open(f"data/json/{event['event_ts']}.json", "w") as f:
+            json.dump(event, f, indent=4, ensure_ascii=False)
+        return
+
+    headers, plain_text, file_url = preprocess_slack_event(event)
+    asyncio.create_task(work(client, headers, plain_text, file_url))
 
 
 if __name__ == "__main__":
