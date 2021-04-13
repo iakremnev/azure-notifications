@@ -11,7 +11,7 @@ from slack_sdk.web.async_client import AsyncWebClient
 
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL") or logging.INFO)
-save_events = True
+save_events = False
 
 slack = AsyncApp(
     token=os.environ.get("SLACK_BOT_TOKEN"),
